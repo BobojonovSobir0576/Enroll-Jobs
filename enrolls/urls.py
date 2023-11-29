@@ -4,6 +4,7 @@ from enrolls.views import (
     AppllyJobView,
     ApplyJobDetailsView,
     JobCategoriesView,
+    JobCategoryCrudViews,
     JobVacanciesView,
     JobVacanciesAllView,
     ApplySearchView
@@ -11,6 +12,7 @@ from enrolls.views import (
 
 urlpatterns = [
     path('job-categories/', JobCategoriesView.as_view()),
+    path('job-category-crud-views/<int:pk>/', JobCategoryCrudViews.as_view()),
     path('job-vacancies/', JobVacanciesView.as_view()),
     path('jobs-vacancies/', JobVacanciesAllView.as_view()),
     path('apply-job-user/', AppllyJobView.as_view()),
