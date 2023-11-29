@@ -140,8 +140,8 @@ class JobVacanciesAllView(APIView):
 
 
 class JobVacanciesDetailsView(APIView):
-    def get(self, request, id):
-        queryset = get_object_or_404(JobVacancies, id=id)
+    def get(self, request, pk):
+        queryset = get_object_or_404(JobVacancies, id=pk)
         serializer = JobVacanciesListSerializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -154,8 +154,8 @@ class JobVacanciesDetailsView(APIView):
             return Response(serializers.data, status=status.HTTP_200_OK)
         return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, id):
-        queryset = get_object_or_404(JobVacancies, id=id)
+    def delete(self, request, pk):
+        queryset = get_object_or_404(JobVacancies, id=pk)
         queryset.delete()
         return Response({"message": "deleted successfully"}, status=status.HTTP_200_OK)
 

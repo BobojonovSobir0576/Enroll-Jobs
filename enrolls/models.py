@@ -37,11 +37,11 @@ class JobApply(models.Model):
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        null=True, blank=True
+        null=True, blank=True, related_name='users'
     )
     jobs = models.ForeignKey(
         JobVacancies, on_delete=models.CASCADE,
-        null=True, blank=True
+        null=True, blank=True, related_name="jobs"
     )
     created_at = models.DateField(
         auto_now_add=True

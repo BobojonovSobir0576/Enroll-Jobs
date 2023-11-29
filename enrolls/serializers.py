@@ -23,13 +23,18 @@ from rest_framework.validators import UniqueValidator
 from enrolls.models import JobApply, JobCategories, JobVacancies, JobAttachment
 from enrolls.utils import Util
 
-from authentification.serializers import UserProfileSerializer
 
 import string, random
 
 
 def password_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return "".join(random.choice(chars) for _ in range(size))
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "username", "email"]
 
 
 class JobCategoriesListSerializer(serializers.ModelSerializer):
@@ -62,12 +67,30 @@ class JobCategoriesCrudSerializer(serializers.ModelSerializer):
         return instance
 
 
+class JobApplySerilaizer(serializers.ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+    apply_jobs_user = UserProfileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = JobApply
+        fields = ["id", "user", "jobs", "apply_jobs_user", "created_at"]
+
+
 class JobVacanciesListSerializer(serializers.ModelSerializer):
     job_category = JobCategoriesListSerializer(read_only=True)
+    jobs = JobApplySerilaizer(many=True, read_only=True)
 
     class Meta:
         model = JobVacancies
-        fields = ["id", "job_category", "title", "description", "price", "created_at"]
+        fields = [
+            "id",
+            "job_category",
+            "title",
+            "description",
+            "price",
+            "jobs",
+            "created_at",
+        ]
 
 
 class JobVacanciesSerializer(serializers.ModelSerializer):
