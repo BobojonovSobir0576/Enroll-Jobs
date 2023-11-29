@@ -33,6 +33,15 @@ class JobVacancies(models.Model):
         return self.title
 
 
+class StatusApply(models.Model):
+    name = models.CharField(
+        max_length=255, null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return self.name
+
 class JobApply(models.Model):
 
     user = models.ForeignKey(
@@ -41,6 +50,10 @@ class JobApply(models.Model):
     )
     jobs = models.ForeignKey(
         JobVacancies, on_delete=models.CASCADE,
+        null=True, blank=True
+    )
+    jobs_status = models.ForeignKey(
+        StatusApply, on_delete=models.CASCADE,
         null=True, blank=True
     )
     created_at = models.DateField(
@@ -64,3 +77,6 @@ class JobAttachment(models.Model):
 
     def __str__(self):
         return f"{self.job_apply.user.username}"
+
+
+

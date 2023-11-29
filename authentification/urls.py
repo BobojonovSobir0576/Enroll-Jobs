@@ -5,16 +5,19 @@ from authentification.views import (
     UserProfilesView,
     UserDetailView,
     LogoutView,
-    CreateHrViews,
-    HrDetailsView
+    CreateAdminHrViews,
+    HrDetailsView,
+    RolesViews
 )
 
 
 urlpatterns = [
-    path('create-hr/', CreateHrViews.as_view()),
+    path('roles/', RolesViews.as_view()),
+    path('create-admin-hr/', CreateAdminHrViews.as_view()),
+    path('update-hr/<int:id>/', HrDetailsView.as_view()),
+
     path('login/', LoginApiView.as_view(), name='login'),
     path('profile/', UserProfilesView.as_view(), name='profile'),
-    path('update/', UserDetailView.as_view(), name='update'),
-    path('update-hr/<int:id>/', HrDetailsView.as_view()),
+    path('update-profile/', UserDetailView.as_view(), name='update'),
     path('logout/', LogoutView.as_view(), name='logout'),
 ]

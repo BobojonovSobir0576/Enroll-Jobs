@@ -1,19 +1,13 @@
-from rest_framework import generics, permissions, status, views
+from rest_framework import generics, permissions, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User, Group
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-from django.conf import settings
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.encoding import force_str, smart_str, smart_bytes, DjangoUnicodeDecodeError
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from authentification.renderers import (
     UserRenderers
@@ -23,8 +17,9 @@ from authentification.serializers import (
     LoginSerializer,
     LogoutSerializer,
     UserProfileSerializer,
-    CreateHrSerializer,
-    UserDetailSerializers
+    CreateAdminHrSerializer,
+    UserDetailSerializers,
+    RolesSerializer
 )
 
 
@@ -36,7 +31,15 @@ def get_token_for_user(user):
     }
 
 
-class CreateHrViews(APIView):
+class RolesViews(APIView):
+
+    def get(self, request):
+        queryset = Group.objects.all()[0:2]
+        serializer = RolesSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CreateAdminHrViews(APIView):
 
     def get(self, request):
         quryset = User.objects.prefetch_related('groups').filter(
@@ -46,7 +49,7 @@ class CreateHrViews(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializers = CreateHrSerializer(data=request.data, partial=True)
+        serializers = CreateAdminHrSerializer(data=request.data, partial=True)
         if serializers.is_valid(raise_exception=True):
             serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)

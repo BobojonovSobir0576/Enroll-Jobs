@@ -1,7 +1,7 @@
 """ Django Libary """
 from django.contrib.auth.models import User, Group
 from django.db.models import Q
-from django.contrib.auth.hashers import make_password
+
 from django.contrib import auth
 from django.utils.encoding import force_str, smart_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -19,7 +19,8 @@ from enrolls.models import (
     JobApply,
     JobCategories,
     JobVacancies,
-    JobAttachment
+    JobAttachment,
+    StatusApply
 )
 from enrolls.utils import (
     Util
@@ -29,11 +30,7 @@ from authentification.serializers import (
     UserProfileSerializer
 )
 
-import string, random
 
-def password_generator(size=10, chars=string.ascii_uppercase + string.digits):
-
-    return ''.join(random.choice(chars) for _ in range(size))
 
 
 class JobCategoriesListSerializer(serializers.ModelSerializer):
@@ -103,9 +100,16 @@ class JobMultipleAttachmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class StatusJobSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = StatusApply
+        fields = "__all__"
+
+
 class JobApplyListSerilaizer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     apply_jobs_user = JobMultipleAttachmentSerializer(read_only=True, many=True)
+    jobs_status = StatusJobSerialzier(read_only=True)
 
     class Meta:
         model = JobApply
@@ -114,6 +118,7 @@ class JobApplyListSerilaizer(serializers.ModelSerializer):
             'user',
             'jobs',
             'apply_jobs_user',
+            'jobs_status',
             'created_at'
         ]
 
@@ -134,6 +139,7 @@ class JobApplySerializer(serializers.ModelSerializer):
             'jobs',
             'apply_jobs_user',
             'uploaded_files',
+            'jobs_status',
             'created_at'
         ]
 
@@ -145,28 +151,12 @@ class JobApplySerializer(serializers.ModelSerializer):
             email=self.context.get('email')
         )
 
-        get_password = password_generator()
-
         filter_Hr_groups = Group.objects.filter(name='User')
-
-        create_user.set_password(get_password)
-        create_user.save()
 
         for l in filter_Hr_groups:
             create_user.groups.add(l)
             create_user.save()
 
-        username = self.context.get('username')
-        email = self.context.get('email')
-        email_body = f'Hi {username}, There your password to enter using login. \n Password: {get_password}'
-
-        data = {
-            'email_body': email_body,
-            'to_email': email,
-            'email_subject': 'Verify your email'
-        }
-
-        Util.send(data)
 
         create = JobApply.objects.create(
             **validated_data

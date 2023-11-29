@@ -45,7 +45,7 @@ class LoginSerializer(serializers.ModelSerializer):
         return value
 
 
-class CreateHrSerializer(serializers.ModelSerializer):
+class CreateAdminHrSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=255, min_length=5, required=True,
                                      validators=[UniqueValidator(queryset=User.objects.all())])
 
@@ -65,10 +65,9 @@ class CreateHrSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def create(self, validated_data):
-
+        groups = validated_data.pop('groups')
         create = User.objects.create_user(**validated_data)
-        filter_Hr_groups = Group.objects.filter(name='Hr')
-        for i in filter_Hr_groups:
+        for i in groups:
             create.groups.add(i)
             create.save()
         return create
