@@ -66,7 +66,7 @@ class JobCategoryCrudViews(APIView):
         objects_list = JobCategories.objects.filter(id=pk)
         jobs = JobVacancies.objects.filter(job_category=pk).count()
         serializers = JobCategoriesListSerializer(objects_list, many=True)
-        return Response({'tag': serializers.data, 'vankt_count': jobs}, status=status.HTTP_200_OK)
+        return Response({'tag': serializers.data, 'count_job': jobs}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         serializers = JobCategoriesCrudSerializer(
