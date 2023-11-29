@@ -134,7 +134,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# FORCE_SCRIPT_NAME = '/jobs'
+FORCE_SCRIPT_NAME = '/jobs'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
