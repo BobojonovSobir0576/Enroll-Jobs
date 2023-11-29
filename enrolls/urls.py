@@ -9,11 +9,12 @@ from enrolls.views import (
     JobVacanciesDetailsView,
     JobVacanciesAllView,
     ApplySearchView,
-    RejectAcceptsView
+    RejectAcceptsView,
+    JobVacanciesDetailsView,
 )
 
 urlpatterns = [
-    path('job-categories/', JobCategoriesView.as_view()),
+
     path('job-categories-details/<int:id>/', JobCategoriesDetailsView.as_view()),
 
     path('job-vacancies/', JobVacanciesView.as_view()),

@@ -2,7 +2,13 @@
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.hashers import make_password
 from django.contrib import auth
-from django.utils.encoding import force_str, smart_str, smart_bytes, DjangoUnicodeDecodeError
+from django.utils.encoding import (
+    force_str,
+    smart_str,
+    smart_bytes,
+    DjangoUnicodeDecodeError,
+)
+from django.contrib.auth.password_validation import validate_password
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -16,7 +22,6 @@ from rest_framework.validators import UniqueValidator
 
 
 class RolesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Group
         fields = "__all__"
@@ -27,7 +32,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'email', 'groups']
+        fields = ["id", "first_name", "last_name", "username", "email", "groups"]
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -36,13 +41,14 @@ class LoginSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'password']
-        read_only_fields = ('username',)
+        fields = ["username", "password"]
+        read_only_fields = ("username",)
 
     def validate_username(self, value):
         if not value.strip():
             raise serializers.ValidationError("Username cannot be empty.")
         return value
+
 
 
 class CreateAdminHrSerializer(serializers.ModelSerializer):
@@ -55,16 +61,19 @@ class CreateAdminHrSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'groups', 'password']
+        fields = ["id", "first_name", "last_name", "username", "groups", "password"]
 
     def validate(self, attrs):
-        username = attrs.get('username', '')
+        username = attrs.get("username", "")
 
         if not username.isalnum():
-            raise serializers.ValidationError('The username should only contain alphanumeric characters')
+            raise serializers.ValidationError(
+                "The username should only contain alphanumeric characters"
+            )
         return super().validate(attrs)
 
     def create(self, validated_data):
+
         groups = validated_data.pop('groups')
         create = User.objects.create_user(**validated_data)
         for i in groups:
@@ -76,24 +85,24 @@ class CreateAdminHrSerializer(serializers.ModelSerializer):
 class UserDetailSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name']
+        fields = ["id", "first_name", "last_name", "username", 'email']
+
         def update(self, instance, validated_data):
             instance.model_method()
-            update = super().update(instance,validated_data)
+            update = super().update(instance, validated_data)
             return update
+
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
-    default_error_message = {
-        'bad_token': ('Token is expired or invalid')
-    }
+    default_error_message = {"bad_token": ("Token is expired or invalid")}
 
     def validate(self, attrs):
-        self.token = attrs['refresh']
+        self.token = attrs["refresh"]
         return attrs
 
     def save(self, **kwargs):
         try:
             RefreshToken(self.token).blacklist()
         except TokenError:
-            self.fail('bad_token')
+            self.fail("bad_token")

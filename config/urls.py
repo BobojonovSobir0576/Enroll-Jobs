@@ -28,9 +28,10 @@ urlpatterns = [
         ),
         name="swagger-ui",
     ),
-
+    
     path('api/auth/', include('authentification.urls')),
     path('api/job/', include('enrolls.urls')),
+
     path('api/chat/', include('chat.urls')),
     path('api/notification/', include('notification.urls')),
 

@@ -12,7 +12,7 @@ class JobCategories(models.Model):
 class JobVacancies(models.Model):
     job_category = models.ForeignKey(
         JobCategories, on_delete=models.CASCADE,
-        null=True, blank=True
+        null=True, blank=True, related_name='categor_id'
     )
     title = models.CharField(
         max_length=255,
@@ -46,11 +46,11 @@ class JobApply(models.Model):
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        null=True, blank=True
+        null=True, blank=True, related_name='users'
     )
     jobs = models.ForeignKey(
         JobVacancies, on_delete=models.CASCADE,
-        null=True, blank=True
+        null=True, blank=True, related_name="jobs"
     )
     jobs_status = models.ForeignKey(
         StatusApply, on_delete=models.CASCADE,

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
 
+
     'authentification',
     'enrolls',
     'chat',
@@ -137,6 +138,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+FORCE_SCRIPT_NAME = '/jobs'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -191,6 +194,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sobirbobojonov2000@gmail.com'
 EMAIL_HOST_PASSWORD = 'rhngiswryyybicyo'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 CHANNEL_LAYERS = {
     "default": {
