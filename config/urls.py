@@ -28,10 +28,12 @@ urlpatterns = [
         ),
         name="swagger-ui",
     ),
-
+    
     path('api/auth/', include('authentification.urls')),
     path('api/job/', include('enrolls.urls')),
-
+    path(
+        "api/password_reset/",
+        include("django_rest_passwordreset.urls", namespace="password_reset")),
 
 ]
 

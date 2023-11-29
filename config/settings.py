@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    "django_rest_passwordreset",
 
     'authentification',
     'enrolls'
@@ -133,7 +134,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-FORCE_SCRIPT_NAME = '/jobs'
+# FORCE_SCRIPT_NAME = '/jobs'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
