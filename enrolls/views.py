@@ -258,32 +258,48 @@ class RejectAcceptsView(APIView):
             Q(id=get_status)
         ).first()
 
-        queryset.jobs_status = get_status_id
-        queryset.save()
+        if get_status_id.name == 'Accept':
 
-        get_password = password_generator()
+            queryset.jobs_status = get_status_id
+            queryset.save()
 
-        filter_user = User.objects.filter(
-            Q(username=queryset.user.username)
-        ).update(password=make_password(get_password))
+            get_password = password_generator()
 
-        admins = queryset.user.id
+            filter_user = User.objects.filter(
+                Q(username=queryset.user.username)
+            ).update(password=make_password(get_password))
 
-        create_channels = Conversation.objects.create(
-            initiator=request.user,
-        )
-        create_channels.receiver = queryset.user
-        create_channels.save()
+            admins = queryset.user.id
 
-        email_body = f'Hi {queryset.user.username}, There your password to enter using login. \n Password: {get_password}'
+            create_channels = Conversation.objects.create(
+                initiator=request.user,
+            )
+            create_channels.receiver = queryset.user
+            create_channels.save()
+
+            email_body = f'Hi {queryset.user.username}, There your password to enter using login. \n Password: {get_password}'
+
+            data = {
+                'email_body': email_body,
+                'to_email': queryset.user.email,
+                'email_subject': 'Accept job'
+            }
+
+            Util.send(data)
+
+            serializer = JobApplyListSerilaizer(queryset)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        email_body = f'Hi {queryset.user.username}, Sorry you are rejected by {queryset.jobs.title}'
 
         data = {
             'email_body': email_body,
             'to_email': queryset.user.email,
-            'email_subject': 'Verify your email'
+            'email_subject': 'Reject job'
         }
 
         Util.send(data)
+
 
         serializer = JobApplyListSerilaizer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
