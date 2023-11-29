@@ -3,20 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User, Group
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
 
-from django.contrib.auth import authenticate, login, logout
+
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, Group
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
-from django.conf import settings
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import (
     force_str,
@@ -36,8 +30,14 @@ from authentification.serializers import (
     UserProfileSerializer,
     CreateAdminHrSerializer,
     UserDetailSerializers,
+    PasswordResetSerializer,
+    PasswordResetCompleteSerializer
 )
 
+from enrolls.utils import (
+    Util,
+    PasswordReset
+)
 
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -149,6 +149,58 @@ class HrDetailsView(APIView):
         queryset = get_object_or_404(User, id=id)
         queryset.delete()
         return Response({"message": "deleted successfully"}, status=status.HTTP_200_OK)
+
+
+class RequestPasswordRestEmail(generics.GenericAPIView):
+    render_classes = [UserRenderers]
+    perrmisson_class = [IsAuthenticated]
+    serializer_class = PasswordResetSerializer
+
+    def post(self, request):
+        serializers = self.serializer_class(data=request.data)
+
+        email = request.data.get('email')
+
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
+            token = PasswordResetTokenGenerator().make_token(user)
+            current_site = get_current_site(request=request).domain
+            relativeLink = reverse('password-reset-confirm', kwargs={'uidb64': uidb64, 'token': token})
+            absurl = 'http://' + current_site + relativeLink
+            email_body = f'Hi \n Use link below to reset password \n link: {absurl}'
+            data = {
+                'email_body': email_body,
+                'to_email': user.email,
+                'email_subject': 'Reset your password'
+            }
+
+            Util.send(data)
+        return Response({'success':'We have sent you to rest your password'}, status=status.HTTP_200_OK)
+
+
+class PasswordTokenCheckView(generics.GenericAPIView):
+    serializer_class = UserProfileSerializer
+    def get(self, request, uidb64, token):
+        try:
+            id = smart_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(id=id)
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                return Response({'error':'Token is not valid, Please request a new one'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'success':True, 'msg':'Credential Valid', 'uidb64':uidb64, 'token':token}, status=status.HTTP_200_OK)
+
+        except DjangoUnicodeDecodeError:
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                return Response({'error':'Token is not valid, Please request a new one'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class SetNewPasswordView(generics.GenericAPIView):
+    serializer_class = PasswordResetCompleteSerializer
+
+    def patch(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'message': 'success'}, status=status.HTTP_200_OK)
 
 
 class LogoutView(generics.GenericAPIView):

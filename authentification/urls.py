@@ -7,7 +7,10 @@ from authentification.views import (
     LogoutView,
     CreateAdminHrViews,
     HrDetailsView,
-    RolesViews
+    RolesViews,
+    RequestPasswordRestEmail,
+    PasswordTokenCheckView,
+    SetNewPasswordView
 )
 
 
@@ -15,9 +18,11 @@ urlpatterns = [
     path('roles/', RolesViews.as_view()),
     path('create-admin-hr/', CreateAdminHrViews.as_view()),
     path('update-hr/<int:id>/', HrDetailsView.as_view()),
-
-    path('login/', LoginApiView.as_view(), name='login'),
-    path('profile/', UserProfilesView.as_view(), name='profile'),
-    path('update-profile/', UserDetailView.as_view(), name='update'),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('request-rest-email-by-email/', RequestPasswordRestEmail.as_view()),
+    path('password-reset-by-email/<uidb64>/<token>/', PasswordTokenCheckView.as_view(),),
+    path('reset_password_complete-by-email/', SetNewPasswordView.as_view()),
+    path('login/', LoginApiView.as_view()),
+    path('profile/', UserProfilesView.as_view()),
+    path('update-profile/', UserDetailView.as_view()),
+    path('logout/', LogoutView.as_view()),
 ]
