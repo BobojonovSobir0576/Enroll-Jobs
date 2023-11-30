@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status, views, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,6 +10,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+
 
 from authentification.renderers import UserRenderers
 
@@ -54,6 +56,7 @@ class JobCategoriesView(APIView):
         serializer = JobCategoriesListSerializer(quryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=JobCategoriesListSerializer)
     def post(self, request):
         serializer = JobCategoriesListSerializer(data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
@@ -69,6 +72,7 @@ class JobCategoriesDetailsView(APIView):
         serializer = JobCategoriesListSerializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=JobCategoriesListSerializer)
     def put(self, request):
         serializers = JobCategoriesListSerializer(instance=request.user, data=request.data, partial=True)
         if serializers.is_valid(raise_exception=True):
@@ -88,6 +92,7 @@ class JobVacanciesView(APIView):
         serializer = JobVacanciesListSerializer(quryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=JobVacanciesSerializer)
     def post(self, request):
         serializer = JobVacanciesSerializer(data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
@@ -102,6 +107,7 @@ class JobVacanciesDetailsView(APIView):
         serializer = JobVacanciesListSerializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=JobVacanciesSerializer)
     def put(self, request):
         serializers = JobVacanciesSerializer(instance=request.user, data=request.data, partial=True)
         if serializers.is_valid(raise_exception=True):
@@ -158,6 +164,7 @@ class JobVacanciesDetailsView(APIView):
         serializer = JobVacanciesListSerializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=JobVacanciesSerializer)
     def put(self, request):
         serializers = JobVacanciesSerializer(
             instance=request.user, data=request.data, partial=True
@@ -180,6 +187,7 @@ class AppllyJobView(APIView):
         serializer = JobApplyListSerilaizer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=JobApplySerializer)
     def post(self, request):
         # filter_user = User.objects.filter(
         #     Q(username=request.data.get("username"))
@@ -220,6 +228,8 @@ class ApplySearchView(generics.ListAPIView):
 class RejectAcceptsView(APIView):
     render_classes = [UserRenderers]
     perrmisson_class = [IsAuthenticated]
+
+    @extend_schema(request=None, responses=JobApplyListSerilaizer)
     def get(self, request, id, status_id):
         queryset = get_object_or_404(JobApply, id=id)
         get_status = status_id
@@ -306,6 +316,7 @@ class RejectAcceptsView(APIView):
 
 
 class ApplyJobDetailsView(APIView):
+    @extend_schema(request=None, responses=JobApplyListSerilaizer)
     def get(self, request, id):
         queryset = get_object_or_404(JobApply, id=id)
         serializer = JobApplyListSerilaizer(queryset)

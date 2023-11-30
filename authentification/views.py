@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -52,6 +53,7 @@ class RolesViews(APIView):
 
 
 class CreateAdminHrViews(APIView):
+
     def get(self, request):
         quryset = User.objects.prefetch_related("groups").filter(
             Q(groups__name__in=["Hr"])
@@ -59,6 +61,7 @@ class CreateAdminHrViews(APIView):
         serializer = UserProfileSerializer(quryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=CreateAdminHrSerializer)
     def post(self, request):
         serializers = CreateAdminHrSerializer(data=request.data, partial=True)
         if serializers.is_valid(raise_exception=True):
@@ -68,6 +71,7 @@ class CreateAdminHrViews(APIView):
 
 
 class LoginApiView(APIView):
+    @extend_schema(request=None, responses=LoginSerializer)
     def post(self, request, format=None):
         serializers = LoginSerializer(data=request.data, partial=True)
         if serializers.is_valid(raise_exception=True):
@@ -109,6 +113,7 @@ class UserDetailView(APIView):
     perrmisson_class = [IsAuthenticated]
     serializers = UserDetailSerializers
 
+    @extend_schema(request=None, responses=UserDetailSerializers)
     def put(self, request):
         serializers = self.serializers(
             instance=request.user, data=request.data, partial=True
@@ -128,6 +133,7 @@ class HrDetailsView(APIView):
     perrmisson_class = [IsAuthenticated]
     serializers = UserDetailSerializers
 
+
     def get(self, request, id):
         quryset = User.objects.prefetch_related("groups").filter(
             Q(groups__name__in=["hr"])
@@ -135,6 +141,7 @@ class HrDetailsView(APIView):
         serializer = UserProfileSerializer(quryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses=UserDetailSerializers)
     def put(self, request, id):
         queryset = get_object_or_404(User, id=id)
         serializers = self.serializers(
@@ -156,6 +163,7 @@ class RequestPasswordRestEmail(generics.GenericAPIView):
     perrmisson_class = [IsAuthenticated]
     serializer_class = PasswordResetSerializer
 
+    @extend_schema(request=None, responses=PasswordResetSerializer)
     def post(self, request):
         serializers = self.serializer_class(data=request.data)
 
@@ -181,6 +189,7 @@ class RequestPasswordRestEmail(generics.GenericAPIView):
 
 class PasswordTokenCheckView(generics.GenericAPIView):
     serializer_class = UserProfileSerializer
+
     def get(self, request, uidb64, token):
         try:
             id = smart_str(urlsafe_base64_decode(uidb64))
@@ -197,6 +206,7 @@ class PasswordTokenCheckView(generics.GenericAPIView):
 class SetNewPasswordView(generics.GenericAPIView):
     serializer_class = PasswordResetCompleteSerializer
 
+    @extend_schema(request=None, responses=PasswordResetCompleteSerializer)
     def patch(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -207,6 +217,7 @@ class LogoutView(generics.GenericAPIView):
     serializer_class = LogoutSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
+    @extend_schema(request=None, responses=LogoutSerializer)
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
