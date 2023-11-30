@@ -1,3 +1,4 @@
+
 from pathlib import Path
 from datetime import timedelta
 import os
@@ -138,7 +139,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-FORCE_SCRIPT_NAME = '/jobs'
+FORCE_SCRIPT_NAME = '/hrms'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
