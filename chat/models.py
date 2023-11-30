@@ -1,14 +1,14 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from enrolls.models import JobVacancies
 
 # Create your models here.
 class Conversation(models.Model):
     initiator = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='convo_starter')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='convo_participant')
+    jobs = models.ForeignKey(JobVacancies, on_delete=models.CASCADE, null=True, blank=True)
     start_time = models.DateTimeField(auto_now_add=True, verbose_name='Time stamp')
-
-
 
 
 class Message(models.Model):

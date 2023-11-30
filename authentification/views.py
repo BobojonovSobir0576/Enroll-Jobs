@@ -54,7 +54,7 @@ class RolesViews(APIView):
 class CreateAdminHrViews(APIView):
     def get(self, request):
         quryset = User.objects.prefetch_related("groups").filter(
-            Q(groups__name__in=["hr"])
+            Q(groups__name__in=["Hr"])
         )
         serializer = UserProfileSerializer(quryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

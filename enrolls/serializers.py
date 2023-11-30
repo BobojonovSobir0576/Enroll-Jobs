@@ -149,15 +149,29 @@ class JobApplySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         uploaded_files = validated_data.pop("uploaded_files")
 
+        try:
+            check_user = User.objects.get(
+                Q(username=self.context.get("username")) | Q(email=self.context.get("email"))
+            )
+        except User.DoesNotExist:
+            check_user = False
+
+
+        if bool(check_user):
+            print(1)
+            create = JobApply.objects.create(**validated_data)
+            create.user = check_user
+            create.save()
+
+            for i in uploaded_files:
+                JobAttachment.objects.create(job_apply=create, attachment=i)
+            return create
+        print(2)
         create_user = User.objects.create_user(
             username=self.context.get("username"), email=self.context.get("email")
         )
 
-
         filter_Hr_groups = Group.objects.filter(name='User')
-
-        get_password = password_generator()
-
         filter_Hr_groups = Group.objects.filter(name="User")
         for l in filter_Hr_groups:
             create_user.groups.add(l)

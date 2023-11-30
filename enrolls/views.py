@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -81,38 +82,6 @@ class JobCategoriesDetailsView(APIView):
         return Response({'message': 'deleted successfully'}, status=status.HTTP_200_OK)
 
 
-class JobVacanciesView(APIView):
-
-    render_classes = [UserRenderers]
-    perrmisson_class = [IsAuthenticated]
-
-    def get(self, request, pk):
-        objects_list = JobCategories.objects.filter(id=pk)
-        jobs = JobVacancies.objects.filter(job_category=pk).count()
-        serializers = JobCategoriesListSerializer(objects_list, many=True)
-        return Response({'tag': serializers.data, 'count_job': jobs}, status=status.HTTP_200_OK)
-
-    def put(self, request, pk):
-        serializers = JobCategoriesCrudSerializer(
-            instance=JobCategories.objects.filter(id=pk)[0],
-            data=request.data,
-            partial=True,
-        )
-        if serializers.is_valid(raise_exception=True):
-            serializers.save()
-            return Response(serializers.data, status=status.HTTP_200_OK)
-        return Response(
-            {"error": "update error data"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    def delete(self, request, pk):
-        objects_get = JobCategories.objects.get(id=pk)
-        objects_get.delete()
-        return Response({"message": "Delete success"}, status=status.HTTP_200_OK)
-
-
-# -------------
-# -------------
 class JobVacanciesView(APIView):
     def get(self, request):
         quryset = JobVacancies.objects.all()
@@ -212,12 +181,12 @@ class AppllyJobView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        filter_user = User.objects.filter(
-            Q(username=request.data.get("username"))
-            | Q(email=request.data.get("email"))
-        )
-        if filter_user:
-            return Response({"msg": "This username or email is already exists.."})
+        # filter_user = User.objects.filter(
+        #     Q(username=request.data.get("username"))
+        #     | Q(email=request.data.get("email"))
+        # )
+        # if filter_user:
+        #     return Response({"msg": "This username or email is already exists.."})
         serializer = JobApplySerializer(
             data=request.data,
             partial=True,
@@ -257,32 +226,63 @@ class RejectAcceptsView(APIView):
         get_status_id = StatusApply.objects.filter(
             Q(id=get_status)
         ).first()
-
         if get_status_id.name == 'Accept':
 
             queryset.jobs_status = get_status_id
             queryset.save()
 
             get_password = password_generator()
+            user = authenticate(username=queryset.user.username, password=queryset.user.password)
 
-            filter_user = User.objects.filter(
-                Q(username=queryset.user.username)
-            ).update(password=make_password(get_password))
+            check_msg_channels = Conversation.objects.select_related('receiver').filter(
+                Q(receiver=queryset.user)
+            ).select_related('jobs').filter(
+                Q(jobs=queryset.jobs)
+            )
 
-            admins = queryset.user.id
+            if not user and bool(check_msg_channels) == False:
+
+                filter_user = User.objects.filter(
+                        Q(username=queryset.user.username)
+                    ).update(password=make_password(get_password))
+
+                create_channels = Conversation.objects.create(
+                    initiator=request.user,
+                )
+                create_channels.receiver = queryset.user
+                create_channels.jobs = queryset.jobs
+                create_channels.save()
+
+                email_body = (f'Hi {queryset.user.username}, There your password to enter using login. \n Password: {get_password} \n'
+                              f'New channel created by {create_channels.initiator.first_name} {create_channels.initiator.last_name}'
+                              f' vs {create_channels.receiver.first_name} {create_channels.receiver.lastname}')
+
+                data = {
+                    'email_body': email_body,
+                    'to_email': queryset.user.email,
+                    'email_subject': 'Accept job'
+                }
+
+                Util.send(data)
+
+                serializer = JobApplyListSerilaizer(queryset)
+                return Response(serializer.data, status=status.HTTP_200_OK)
 
             create_channels = Conversation.objects.create(
                 initiator=request.user,
             )
             create_channels.receiver = queryset.user
+            create_channels.jobs = queryset.jobs
             create_channels.save()
 
-            email_body = f'Hi {queryset.user.username}, There your password to enter using login. \n Password: {get_password}'
+            email_body = (f'Hi {queryset.user.username}, For you created new channel to conversation {queryset.jobs.title} \n'
+                          f'New channel created by {create_channels.initiator.first_name} {create_channels.initiator.last_name}'
+                          f' vs {create_channels.receiver.first_name} {create_channels.receiver.last_name}')
 
             data = {
                 'email_body': email_body,
                 'to_email': queryset.user.email,
-                'email_subject': 'Accept job'
+                'email_subject': 'Reject job'
             }
 
             Util.send(data)
